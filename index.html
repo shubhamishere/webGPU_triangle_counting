@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Triangle Counting</title>
+    <!-- Using Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A simple animation for the status text */
+        @keyframes pulse {
+            50% {
+                opacity: .5;
+            }
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans flex items-center justify-center min-h-screen">
+
+    <div class="bg-gray-800 shadow-2xl rounded-xl p-8 w-full max-w-lg space-y-6 border border-gray-700">
+        
+        <!-- Header -->
+        <div>
+            <h1 class="text-3xl font-bold text-center text-white">WebGPU Triangle Counting</h1>
+            <p class="text-center text-gray-400 mt-2">Upload a graph file to count the number of triangles using your GPU.</p>
+        </div>
+
+        <!-- File Input -->
+        <div class="space-y-2">
+            <label for="graphInput" class="block text-sm font-medium text-gray-300">Graph File (.txt)</label>
+            <input type="file" id="graphInput" accept=".txt" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-colors cursor-pointer"/>
+        </div>
+
+        <!-- Control Button -->
+        <button id="runButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-800 disabled:bg-gray-600 disabled:cursor-not-allowed">
+            Select a file first
+        </button>
+
+        <!-- Results and Status -->
+        <div class="bg-gray-900 p-6 rounded-lg border border-gray-700 space-y-4">
+            <div>
+                <h2 class="text-lg font-semibold text-white">Results</h2>
+                <p class="text-gray-400 mt-1">The total number of triangles found in the graph.</p>
+                <div class="mt-2 text-4xl font-mono bg-gray-800 rounded-md p-4 text-center text-green-400" id="triangleCount">0</div>
+            </div>
+            <div class="border-t border-gray-700 pt-4">
+                 <h2 class="text-lg font-semibold text-white">Status</h2>
+                 <p class="text-gray-400 mt-1">Current state of the computation process.</p>
+                 <div class="mt-2 text-lg font-mono bg-gray-800 rounded-md p-4 text-center text-yellow-400" id="status">Idle</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The main script that orchestrates everything -->
+    <script type="module" src="main.js"></script>
+
+</body>
+</html>

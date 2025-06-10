@@ -1,0 +1,9 @@
+# A simple graph with 5 nodes and 6 edges.
+# It contains two triangles: (0, 1, 2) and (2, 3, 4).
+
+0 1
+1 2
+2 0
+2 3
+3 4
+4 2
