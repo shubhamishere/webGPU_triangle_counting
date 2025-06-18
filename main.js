@@ -5,6 +5,10 @@ const graphInput = document.getElementById('graphInput');
 const runButton = document.getElementById('runButton');
 const triangleCountEl = document.getElementById('triangleCount');
 const statusEl = document.getElementById('status');
+// Newly added: Get references to timing display elements
+const parseTimeEl = document.getElementById('parseTime');
+const gpuTimeEl = document.getElementById('gpuTime');
+const totalTimeEl = document.getElementById('totalTime');
 
 // Disable the run button initially. It will be enabled when a file is selected.
 runButton.disabled = true;
@@ -28,6 +32,10 @@ runButton.addEventListener('click', async () => {
     }
     // Reset count before running
     triangleCountEl.textContent = '0';
+    //Newly added
+    parseTimeEl.textContent = '0 ms';
+    gpuTimeEl.textContent = '0 ms';
+    totalTimeEl.textContent = '0 ms';
     await runTriangleCounting();
 });
 
@@ -159,9 +167,13 @@ async function runTriangleCounting() {
         const device = await adapter.requestDevice();
         updateStatus('WebGPU Initialized.', 'success');
 
-        // 2. Parse Graph Data
+        // 2. Parse Graph Data (with timing, Newly added)
         updateStatus('Parsing graph file...', 'running');
+        const parseStart = performance.now();
         const { numNodes, rowPtr, edgeList } = await parseGraphToCSR(graphInput.files[0]);
+        const parseEnd = performance.now();
+        const parseDuration = parseEnd - parseStart;
+        parseTimeEl.textContent = `${parseDuration.toFixed(2)} ms`;
         updateStatus(`Graph parsed: ${numNodes} nodes, ${edgeList.length / 2} edges.`, 'success');
 
         // 3. Create GPU Buffers and copy data
@@ -217,29 +229,29 @@ async function runTriangleCounting() {
             ],
         });
 
-        // 6. Dispatch Computation
+        // 6. Dispatch Computation (with timing)
         updateStatus('Running computation on GPU...', 'running');
-        const commandEncoder = device.createCommandEncoder();
-        
-        commandEncoder.clearBuffer(resultBuffer);
+        const gpuStart = performance.now();
 
+        const commandEncoder = device.createCommandEncoder();
+        commandEncoder.clearBuffer(resultBuffer);
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(computePipeline);
         passEncoder.setBindGroup(0, bindGroup);
-        
         const workgroupSize = 256;
         const numWorkgroups = Math.ceil(numNodes / workgroupSize);
         passEncoder.dispatchWorkgroups(numWorkgroups);
-        
         passEncoder.end();
-
         commandEncoder.copyBufferToBuffer(resultBuffer, 0, stagingBuffer, 0, 4);
-
         device.queue.submit([commandEncoder.finish()]);
+
 
         // 7. Read Result Back
         // *** FIX: Wait for the GPU to completely finish its work, not just for submission. ***
-        await device.queue.onSubmittedWorkDone(); 
+        await device.queue.onSubmittedWorkDone();
+        const gpuEnd = performance.now();
+        const gpuDuration = gpuEnd - gpuStart;
+        gpuTimeEl.textContent = `${gpuDuration.toFixed(2)} ms`;
         updateStatus('Awaiting GPU result...', 'running');
 
         await stagingBuffer.mapAsync(GPUMapMode.READ);
@@ -251,6 +263,7 @@ async function runTriangleCounting() {
 
         // 8. Display Result and Clean Up
         triangleCountEl.textContent = finalCount.toLocaleString();
+        totalTimeEl.textContent = `${(parseDuration + gpuDuration).toFixed(2)} ms`;
         updateStatus('Computation successful!', 'success');
         
         rowPtrBuffer.destroy();
